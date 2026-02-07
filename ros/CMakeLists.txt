@@ -77,6 +77,7 @@ elseif("$ENV{ROS_VERSION}" STREQUAL "2")
   find_package(sensor_msgs REQUIRED)
   find_package(tf2_ros REQUIRED)
   find_package(yaml-cpp REQUIRED)
+  find_package(rosbag2_cpp REQUIRED)
 
   # ROS 2 node
   add_library(odometry_component SHARED ros2/OdometryServer.cpp)
@@ -96,7 +97,21 @@ elseif("$ENV{ROS_VERSION}" STREQUAL "2")
 
   rclcpp_components_register_node(odometry_component PLUGIN "genz_icp_ros::OdometryServer" EXECUTABLE odometry_node)
 
-  install(TARGETS odometry_component LIBRARY DESTINATION lib RUNTIME DESTINATION lib/${PROJECT_NAME})
+  # Offline bag processing node
+  add_library(offline_component SHARED ros2/OfflineNode.cpp)
+  target_compile_features(offline_component PUBLIC cxx_std_20)
+  target_include_directories(offline_component PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  target_link_libraries(offline_component odometry_component)
+  ament_target_dependencies(
+    offline_component
+    rclcpp
+    rclcpp_components
+    sensor_msgs
+    rosbag2_cpp)
+
+  rclcpp_components_register_node(offline_component PLUGIN "genz_icp_ros::OfflineNode" EXECUTABLE offline_node)
+
+  install(TARGETS odometry_component offline_component LIBRARY DESTINATION lib RUNTIME DESTINATION lib/${PROJECT_NAME})
   install(DIRECTORY launch rviz config DESTINATION share/${PROJECT_NAME}/)
 
   ament_package()

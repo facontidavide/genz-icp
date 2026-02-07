@@ -44,7 +44,7 @@ public:
     OdometryServer() = delete;
     explicit OdometryServer(const rclcpp::NodeOptions &options);
 
-private:
+protected:
     /// Register new frame
     void RegisterFrame(const sensor_msgs::msg::PointCloud2::ConstSharedPtr &msg);
 
@@ -63,7 +63,7 @@ private:
     Sophus::SE3d LookupTransform(const std::string &target_frame,
                                  const std::string &source_frame) const;
 
-private:
+protected:
     /// Tools for broadcasting TFs.
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     std::unique_ptr<tf2_ros::Buffer> tf2_buffer_;
